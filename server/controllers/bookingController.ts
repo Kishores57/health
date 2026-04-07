@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { BookingModel } from '../models/Booking';
 import { TestModel } from '../models/Test';
 import { generateBookingId } from '../utils/bookingHelper';
-import { sendWhatsAppMessage } from '../services/whatsappService';
 import { sendBookingConfirmation, sendReportNotification } from '../mailer';
 
 // @desc    Create a guest booking
@@ -56,11 +55,6 @@ export const createBooking = async (req: Request, res: Response): Promise<void> 
     });
 
     const testName = test.name || "Medical Test";
-    const msgBody = `Hello ${patientName}, your test (${testName}) has been successfully booked for ${bookingDate} ${timeSlot}. Please be available on time. – Lab Team`;
-    
-    // Always triggers WhatsApp notification to patient
-    await sendWhatsAppMessage(phone, msgBody);
-    
     // Await the Gmail OAuth 2.0 Email Confirmation to catch configuration errors
     if (email) {
       await sendBookingConfirmation(email, booking, test);
@@ -156,9 +150,6 @@ export const updateBookingStatus = async (req: Request, res: Response): Promise<
       if (test) testName = test.name;
     }
 
-    const msgBody = `Status Update:\nYour booking ${booking.bookingId} for ${testName} is now: ${status}`;
-    
-    await sendWhatsAppMessage(booking.phone, msgBody);
 
     res.json(booking);
   } catch (err: any) {
@@ -199,10 +190,6 @@ export const uploadReport = async (req: Request, res: Response): Promise<void> =
     }
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
-    const msgBody = `Your report for ${testName} (Booking: ${booking.bookingId}) is ready.\nTrack and download at: ${frontendUrl}/track-booking`;
-    
-    await sendWhatsAppMessage(booking.phone, msgBody);
-    
     // Asynchronously trigger the Gmail OAuth 2.0 Report Delivery Email
     if (booking.email) {
       sendReportNotification(booking.email, `${frontendUrl}${fileUrl}`, req.file.path, testName).catch(console.error);

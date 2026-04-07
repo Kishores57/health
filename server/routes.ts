@@ -6,7 +6,6 @@ import { api } from "@shared/routes";
 import { setupAuth } from "./auth";
 import { z } from "zod";
 import { sendBookingConfirmation, sendReportNotification } from "./mailer";
-import { sendWhatsAppFastingAlert } from "./whatsapp";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 
@@ -134,13 +133,6 @@ export async function registerRoutes(
       // Fire email asynchronously
       sendBookingConfirmation(input.email, input).catch(console.error);
 
-      // Fire WhatsApp notification if any test requires fasting
-      for (const testId of input.testIds) {
-        const test = await storage.getTest(testId);
-        if (test?.fastingRequired) {
-          sendWhatsAppFastingAlert(input.phone, test.name, test.fastingDuration).catch(console.error);
-        }
-      }
 
       res.status(201).json(booking);
     } catch (err) {

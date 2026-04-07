@@ -1,7 +1,6 @@
 import cron from 'node-cron';
 import { BookingModel } from '../models/Booking';
 import { TestModel } from '../models/Test';
-import { sendWhatsAppMessage } from './whatsappService';
 
 export const setupCronJobs = () => {
   // Run every hour to check for bookings coming up in 10-12 hours
@@ -35,13 +34,10 @@ export const setupCronJobs = () => {
             }
 
             if (fastingRequired) {
-              const msgBody = `Reminder: Dear ${booking.patientName}, please maintain fasting for 10-12 hours before your ${testName} scheduled at ${booking.timeSlot}. – Lab Team`;
-              const success = await sendWhatsAppMessage(booking.phone, msgBody);
-              
-              if (success) {
-                booking.reminderSent = true;
-                await booking.save();
-              }
+              // TODO: Implement email/SMS reminders here since Twilio WhatsApp was removed
+              // For now, just mark it as sent so we don't process it again
+              booking.reminderSent = true;
+              await booking.save();
             }
           }
         }

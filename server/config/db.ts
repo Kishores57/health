@@ -2,11 +2,15 @@ import mongoose from "mongoose";
 
 export const connectDB = async () => {
   try {
-    const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/health-hub";
-    await mongoose.connect(mongoUri);
-    console.log("Connected to MongoDB via mongoose");
+    if (!process.env.MONGO_URI) {
+      throw new Error("MONGO_URI is not defined ❌");
+    }
+
+    await mongoose.connect(process.env.MONGO_URI);
+
+    console.log("MongoDB connected ✅");
   } catch (err) {
-    console.error("Failed to connect to MongoDB", err);
+    console.error("MongoDB connection error ❌", err);
     process.exit(1);
   }
 };
