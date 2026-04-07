@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: 'Inter', sans-serif;
+  --font-heading: 'Plus Jakarta Sans', sans-serif;
+
+  /* Medical Blue Theme */
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  
+  --primary: 217 91% 60%;
+  --primary-foreground: 210 40% 98%;
+  
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  
+  --accent: 346 84% 61%; /* Subtle red accent for "Health/Blood" context */
+  --accent-foreground: 210 40% 98%;
+  
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 217 91% 60%;
+  
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: 222 47% 11%;
+  --foreground: 210 40% 98%;
+  
+  --primary: 217 91% 60%;
+  --primary-foreground: 222 47% 11%;
+  
+  --secondary: 217 32% 17%;
+  --secondary-foreground: 210 40% 98%;
+  
+  --muted: 217 32% 17%;
+  --muted-foreground: 215 20% 65%;
+  
+  --accent: 346 84% 61%;
+  --accent-foreground: 210 40% 98%;
+  
+  --destructive: 0 62% 30%;
+  --destructive-foreground: 210 40% 98%;
+  
+  --border: 217 32% 17%;
+  --input: 217 32% 17%;
+  --ring: 217 91% 60%;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground antialiased font-sans;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-tight text-slate-900 dark:text-slate-50;
+  }
+}
+
+/* Custom Utilities */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl dark:bg-slate-900/80 dark:border-slate-800;
+  }
+  
+  .hero-gradient {
+    background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.1), transparent 40%),
+                radial-gradient(circle at bottom left, rgba(244, 63, 94, 0.05), transparent 40%);
+  }
+}

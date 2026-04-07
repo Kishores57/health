@@ -1,2 +1,82 @@
+# ===========================
+# Dependencies
+# ===========================
+node_modules/
+.pnp
+.pnp.js
+
+# ===========================
+# Environment Variables
+# ===========================
 .env
-node_modules
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ===========================
+# Build Outputs
+# ===========================
+dist/
+dist-ssr/
+build/
+*.cjs
+
+# ===========================
+# Uploads (runtime files)
+# ===========================
+uploads/
+
+# ===========================
+# Logs & Debug Files
+# ===========================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+errors.txt
+output.txt
+output_log.txt
+output_dummy_db.txt
+
+# ===========================
+# One-off Scripts / Temp
+# ===========================
+fix.py
+*.py
+
+# ===========================
+# Database Migrations (optional - remove if you want to commit them)
+# ===========================
+# migrations/
+
+# ===========================
+# OS Files
+# ===========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===========================
+# IDE / Editor
+# ===========================
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ===========================
+# Replit (not needed locally)
+# ===========================
+.replit
+.local/
+replit.nix
+
+# ===========================
+# TypeScript
+# ===========================
+*.tsbuildinfo
