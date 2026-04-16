@@ -21,33 +21,50 @@ import { serveStatic } from "./static";
 const app = express();
 const httpServer = createServer(app);
 
-// Ensures uploads directory exists
-const uploadDir = path.join(process.cwd(), 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+const isProduction = process.env.NODE_ENV === "production";
 
+// ── Security: Trust proxy (required for Railway / reverse proxies) ──────────
+app.set("trust proxy", 1);
+
+// ── CORS ────────────────────────────────────────────────────────────────────
+// In production, only allow same-origin requests (Express serves the frontend)
+// In development, allow all origins for Vite HMR
+const allowedOrigins = isProduction
+  ? [process.env.FRONTEND_URL || ""].filter(Boolean)
+  : true; // true = all origins in dev
+
+app.use(
+  cors({
+    origin: allowedOrigins as any,
+    credentials: true,
+  })
+);
+
+// ── Body Parsers ─────────────────────────────────────────────────────────────
 declare module "http" {
   interface IncomingMessage {
     rawBody: unknown;
   }
 }
 
-app.use(cors());
 app.use(
   express.json({
     verify: (req, _res, buf) => {
       req.rawBody = buf;
     },
-  }),
+  })
 );
-
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-// Serve uploaded files
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+// ── Uploads directory (created at runtime, not tracked in git) ───────────────
+const uploadDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+app.use("/uploads", express.static(uploadDir));
 
+// ── Request Logger ────────────────────────────────────────────────────────────
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -55,13 +72,12 @@ export function log(message: string, source = "express") {
     second: "2-digit",
     hour12: true,
   });
-
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
 app.use((req, res, next) => {
   const start = Date.now();
-  const path = req.path;
+  const reqPath = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
   const originalResJson = res.json;
@@ -72,8 +88,8 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+    if (reqPath.startsWith("/api")) {
+      let logLine = `${req.method} ${reqPath} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
@@ -84,46 +100,39 @@ app.use((req, res, next) => {
   next();
 });
 
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
 (async () => {
   // 1. Connect to MongoDB
   await connectDB();
-  
-  // 2. Initialize Admin
+
+  // 2. Seed owner account (single-owner system)
   await initAdmin();
 
-  // 3. Initialize Tests
+  // 3. Seed default tests if DB is empty
   await initTests();
 
-  // 4. Setup Cron Jobs
+  // 4. Schedule cron jobs
   setupCronJobs();
 
   // 5. API Routes
-  app.use('/api', adminRoutes);
-  app.use('/api/tests', testRoutes);
-  app.use('/api/bookings', bookingRoutes);
+  app.use("/api", adminRoutes);
+  app.use("/api/tests", testRoutes);
+  app.use("/api/bookings", bookingRoutes);
 
-  // 4. Error Handling Middlewares
-  // Only capture API routes for 404, let Vite handle front-end
-  app.use('/api', notFound);
+  // 6. 404 handler for unknown API routes
+  app.use("/api", notFound);
   app.use(errorHandler);
 
-  // 5. Setup Vite for front-end in development, or static in production
-  if (process.env.NODE_ENV === "production") {
+  // 7. Serve frontend
+  if (isProduction) {
     serveStatic(app);
   } else {
-    // If you need the old vite middleware
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   }
 
   const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-    },
-    () => {
-      log(`serving on port ${port}`);
-    },
-  );
+  httpServer.listen({ port, host: "0.0.0.0" }, () => {
+    log(`serving on port ${port}`);
+  });
 })();

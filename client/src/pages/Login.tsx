@@ -35,11 +35,15 @@ export default function Login() {
     const loginMutation = useMutation({
         mutationFn: async (data: FormValues) => {
             const res = await apiRequest("POST", "/api/login", data);
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.message || "Login failed");
+            }
             return await res.json();
         },
-        onSuccess: (user) => {
-            queryClient.setQueryData(["/api/auth/user"], user);
-            setLocation(user.role === "owner" ? "/owner" : "/admin");
+        onSuccess: (data) => {
+            queryClient.setQueryData(["/api/auth/user"], data);
+            setLocation("/owner");
         },
         onError: (error: Error) => {
             toast({
@@ -50,23 +54,24 @@ export default function Login() {
         },
     });
 
+    // If already logged in, redirect to owner dashboard
     if (user) {
-        setLocation(user.role === "owner" ? "/owner" : "/admin");
+        setLocation("/owner");
         return null;
     }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
-            <Card className="w-full max-w-md">
+            <Card className="w-full max-w-md shadow-xl">
                 <CardHeader className="space-y-1">
                     <div className="flex justify-center mb-4">
-                        <div className="bg-primary/10 p-3 rounded-full">
+                        <div className="bg-primary/10 p-4 rounded-full">
                             <ShieldCheck className="h-8 w-8 text-primary" />
                         </div>
                     </div>
-                    <CardTitle className="text-2xl font-bold text-center">Staff Login</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-center">Owner Login</CardTitle>
                     <CardDescription className="text-center">
-                        Enter your credentials to access the dashboard
+                        Restricted access — authorized personnel only
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -77,9 +82,9 @@ export default function Login() {
                                 name="username"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Email or Username</FormLabel>
+                                        <FormLabel>Username</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Enter email or username" {...field} />
+                                            <Input placeholder="Enter username" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -104,16 +109,6 @@ export default function Login() {
                             </Button>
                         </form>
                     </Form>
-                    <div className="mt-4 text-center text-sm text-slate-600">
-                        Don't have an account?{" "}
-                        <button
-                            type="button"
-                            onClick={() => setLocation("/register")}
-                            className="text-primary hover:underline font-medium"
-                        >
-                            Create one
-                        </button>
-                    </div>
                 </CardContent>
             </Card>
         </div>

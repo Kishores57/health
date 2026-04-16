@@ -11,61 +11,116 @@
   /* Medical Blue Theme */
   --background: 0 0% 100%;
   --foreground: 222 47% 11%;
-  
+
   --primary: 217 91% 60%;
   --primary-foreground: 210 40% 98%;
-  
+
   --secondary: 210 40% 96%;
   --secondary-foreground: 222 47% 11%;
-  
+
   --muted: 210 40% 96%;
   --muted-foreground: 215 16% 47%;
-  
-  --accent: 346 84% 61%; /* Subtle red accent for "Health/Blood" context */
+
+  --accent: 346 84% 61%;
   --accent-foreground: 210 40% 98%;
-  
+
   --destructive: 0 84% 60%;
   --destructive-foreground: 210 40% 98%;
 
   --border: 214 32% 91%;
   --input: 214 32% 91%;
   --ring: 217 91% 60%;
-  
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+
   --radius: 0.75rem;
 }
 
 .dark {
-  --background: 222 47% 11%;
-  --foreground: 210 40% 98%;
-  
-  --primary: 217 91% 60%;
-  --primary-foreground: 222 47% 11%;
-  
-  --secondary: 217 32% 17%;
-  --secondary-foreground: 210 40% 98%;
-  
-  --muted: 217 32% 17%;
-  --muted-foreground: 215 20% 65%;
-  
+  --background: 224 30% 8%;
+  --foreground: 210 40% 96%;
+
+  --primary: 217 91% 65%;
+  --primary-foreground: 224 30% 8%;
+
+  --secondary: 217 28% 16%;
+  --secondary-foreground: 210 40% 96%;
+
+  --muted: 217 28% 16%;
+  --muted-foreground: 215 22% 65%;
+
   --accent: 346 84% 61%;
   --accent-foreground: 210 40% 98%;
-  
-  --destructive: 0 62% 30%;
+
+  --destructive: 0 62% 44%;
   --destructive-foreground: 210 40% 98%;
-  
-  --border: 217 32% 17%;
-  --input: 217 32% 17%;
-  --ring: 217 91% 60%;
+
+  --border: 217 25% 20%;
+  --input: 217 25% 20%;
+  --ring: 217 91% 65%;
+
+  --card: 224 28% 11%;
+  --card-foreground: 210 40% 96%;
+
+  --popover: 224 28% 11%;
+  --popover-foreground: 210 40% 96%;
 }
 
 @layer base {
+  * {
+    @apply border-border;
+  }
+
   body {
     @apply bg-background text-foreground antialiased font-sans;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading tracking-tight text-slate-900 dark:text-slate-50;
+    @apply font-heading tracking-tight;
   }
+
+  /* ── Global dark-mode text overrides ────────────────────────────────────── 
+     These override hardcoded Tailwind slate-* color classes throughout the app
+     so every component becomes dark-mode aware without touching every file.     */
+
+  /* Headings and strong text */
+  .dark .text-slate-900 { color: hsl(210 40% 95%); }
+  .dark .text-slate-800 { color: hsl(210 35% 88%); }
+  .dark .text-slate-700 { color: hsl(210 30% 80%); }
+
+  /* Body / secondary text */
+  .dark .text-slate-600 { color: hsl(215 22% 65%); }
+  .dark .text-slate-500 { color: hsl(215 18% 58%); }
+  .dark .text-slate-400 { color: hsl(215 16% 50%); }
+
+  /* Backgrounds */
+  .dark .bg-white       { background-color: hsl(224 28% 12%); }
+  .dark .bg-slate-50    { background-color: hsl(224 28% 10%); }
+  .dark .bg-slate-100   { background-color: hsl(224 26% 14%); }
+  .dark .bg-slate-200   { background-color: hsl(220 22% 18%); }
+
+  /* Borders */
+  .dark .border-slate-100 { border-color: hsl(217 25% 20%); }
+  .dark .border-slate-200 { border-color: hsl(217 22% 24%); }
+  .dark .border-slate-300 { border-color: hsl(217 18% 30%); }
+
+  /* Inline badge/chips */
+  .dark .bg-blue-50  { background-color: hsl(217 38% 16%); }
+  .dark .bg-green-50 { background-color: hsl(140 30% 12%); }
+  .dark .bg-purple-50{ background-color: hsl(270 30% 14%); }
+
+  /* Table rows on hover */
+  .dark .hover\:bg-slate-50\/50:hover { background-color: hsl(217 28% 14% / 0.5); }
+
+  /* Login / card bg */
+  .dark .bg-slate-50.min-h-screen { background-color: hsl(224 30% 8%); }
+
+  /* Inline stat "bg-white" pills in Navbar/cards */
+  .dark [class*="bg-white\/"] { background-color: hsl(224 25% 14% / 0.8); }
 }
 
 /* Custom Utilities */
@@ -73,13 +128,18 @@
   .text-balance {
     text-wrap: balance;
   }
-  
+
   .glass-card {
-    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl dark:bg-slate-900/80 dark:border-slate-800;
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl dark:bg-slate-900/80 dark:border-slate-700/60;
   }
-  
+
   .hero-gradient {
     background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.1), transparent 40%),
                 radial-gradient(circle at bottom left, rgba(244, 63, 94, 0.05), transparent 40%);
+  }
+
+  .dark .hero-gradient {
+    background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.08), transparent 40%),
+                radial-gradient(circle at bottom left, rgba(244, 63, 94, 0.04), transparent 40%);
   }
 }

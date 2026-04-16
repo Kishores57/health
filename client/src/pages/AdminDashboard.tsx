@@ -24,10 +24,14 @@ export default function AdminDashboard() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
-  // Protected route check
+  // Protected route check — only owner can access
   useEffect(() => {
-    if (!authLoading && !user) {
-      setLocation("/api/login");
+    if (!authLoading) {
+      if (!user) {
+        setLocation("/auth");
+      } else if (user.role !== "owner") {
+        setLocation("/");
+      }
     }
   }, [user, authLoading, setLocation]);
 
@@ -78,21 +82,21 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen py-8">
+    <div className="bg-background min-h-screen py-8">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-2xl font-bold font-heading text-slate-900">Admin Dashboard</h1>
             <p className="text-slate-500">Manage bookings and reports</p>
           </div>
-          <div className="bg-white px-4 py-2 rounded-lg shadow-sm border text-sm">
+          <div className="bg-background px-4 py-2 rounded-lg shadow-sm border border-border text-sm">
             <span className="text-slate-500">Total Bookings:</span>
             <span className="ml-2 font-bold text-slate-900">{bookings?.length || 0}</span>
           </div>
         </div>
 
         <Card className="border-none shadow-lg overflow-hidden">
-          <CardHeader className="bg-white border-b">
+          <CardHeader className="bg-background border-b">
             <CardTitle>Recent Bookings</CardTitle>
           </CardHeader>
           <CardContent className="p-0">

@@ -3,7 +3,7 @@ import { Link } from "wouter";
 
 export function Footer() {
   return (
-    <footer className="bg-slate-50 border-t border-slate-100">
+    <footer className="bg-muted/30 border-t border-border">
       <div className="container mx-auto px-4 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
 
@@ -13,7 +13,7 @@ export function Footer() {
               <div className="bg-primary/10 p-2 rounded-lg">
                 <Activity className="h-6 w-6 text-primary" />
               </div>
-              <span className="text-xl font-bold font-heading text-slate-900">MediLab</span>
+              <span className="text-xl font-bold font-heading text-foreground">MediLab</span>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed">
               Leading the way in medical diagnostics with state-of-the-art technology and compassionate care. Accurate results, every time.
@@ -22,7 +22,7 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-heading font-semibold text-slate-900 mb-4">Quick Links</h3>
+            <h3 className="font-heading font-semibold text-foreground mb-4">Quick Links</h3>
             <ul className="space-y-3">
               <li>
                 <Link href="/">
@@ -49,7 +49,7 @@ export function Footer() {
 
           {/* Contact */}
           <div>
-            <h3 className="font-heading font-semibold text-slate-900 mb-4">Contact Us</h3>
+            <h3 className="font-heading font-semibold text-foreground mb-4">Contact Us</h3>
             <ul className="space-y-3">
               <li className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4 text-primary" />
@@ -66,27 +66,27 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Newsletter */}
+          {/* Stay Connected */}
           <div>
-            <h3 className="font-heading font-semibold text-slate-900 mb-4">Stay Connected</h3>
+            <h3 className="font-heading font-semibold text-foreground mb-4">Stay Connected</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Follow us on social media for health tips and updates.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="h-10 w-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:text-primary hover:border-primary transition-all">
+              <a href="#" className="h-10 w-10 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-all">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="h-10 w-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:text-primary hover:border-primary transition-all">
+              <a href="#" className="h-10 w-10 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-all">
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="#" className="h-10 w-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:text-primary hover:border-primary transition-all">
+              <a href="#" className="h-10 w-10 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-all">
                 <Instagram className="h-5 w-5" />
               </a>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-slate-200 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} MediLab Diagnostics. All rights reserved.
           </p>

@@ -7,6 +7,7 @@ node_modules/
 
 # ===========================
 # Environment Variables
+# NEVER commit .env files
 # ===========================
 .env
 .env.local
@@ -20,12 +21,12 @@ node_modules/
 dist/
 dist-ssr/
 build/
-*.cjs
 
 # ===========================
-# Uploads (runtime files)
+# Uploads (runtime files — created automatically by the server)
 # ===========================
-uploads/
+uploads/*
+!uploads/.gitkeep
 
 # ===========================
 # Logs & Debug Files
@@ -37,19 +38,6 @@ yarn-error.log*
 pnpm-debug.log*
 errors.txt
 output.txt
-output_log.txt
-output_dummy_db.txt
-
-# ===========================
-# One-off Scripts / Temp
-# ===========================
-fix.py
-*.py
-
-# ===========================
-# Database Migrations (optional - remove if you want to commit them)
-# ===========================
-# migrations/
 
 # ===========================
 # OS Files
@@ -70,13 +58,7 @@ desktop.ini
 *.sw?
 
 # ===========================
-# Replit (not needed locally)
-# ===========================
-.replit
-.local/
-replit.nix
-
-# ===========================
 # TypeScript
 # ===========================
 *.tsbuildinfo
+*.cjs
