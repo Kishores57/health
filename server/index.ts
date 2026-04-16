@@ -119,6 +119,15 @@ app.use((req, res, next) => {
   app.use("/api/tests", testRoutes);
   app.use("/api/bookings", bookingRoutes);
 
+  // Health check — used by keep-alive ping and Railway health probes
+  app.get("/api/health", (_req, res) => {
+    res.json({
+      status: "ok",
+      uptime: Math.floor(process.uptime()),
+      timestamp: new Date().toISOString(),
+    });
+  });
+
   // 6. 404 handler for unknown API routes
   app.use("/api", notFound);
   app.use(errorHandler);
