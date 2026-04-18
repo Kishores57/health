@@ -31,6 +31,7 @@ export const bookingsSchema = z.object({
   bookingDate: z.string(),
   timeSlot: z.string(),
   address: z.string(),
+  homeCollection: z.boolean().default(false).optional(),
   status: z.enum(["pending", "confirmed", "completed", "cancelled"]).default("pending"),
   userId: z.string().optional().nullable(),
   createdAt: z.union([z.date(), z.string()]).optional()

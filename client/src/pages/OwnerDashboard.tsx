@@ -28,9 +28,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Loader2, DollarSign, Users, Target, Plus, Pencil,
-  Upload, FileText, Trash2, ChevronDown, ClipboardList,
+  Upload, FileText, Trash2, ChevronDown, ClipboardList, Eye,
 } from "lucide-react";
-import type { Test } from "@shared/schema";
+import type { Test, BookingResponse } from "@shared/schema";
 
 export default function OwnerDashboard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -54,6 +54,7 @@ export default function OwnerDashboard() {
   const [selectedBooking, setSelectedBooking] = useState<number | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [patientDetailsBooking, setPatientDetailsBooking] = useState<BookingResponse | null>(null);
   const bookingsSectionRef = useRef<HTMLDivElement>(null);
 
   // Protected route & role check — owner only
@@ -298,6 +299,17 @@ export default function OwnerDashboard() {
                             {/* Actions */}
                             <TableCell className="text-right">
                               <div className="flex justify-end items-center gap-2 flex-wrap">
+                                {/* View Details */}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-8 w-8 p-0"
+                                  title="View Patient Details"
+                                  onClick={() => setPatientDetailsBooking(booking as BookingResponse)}
+                                >
+                                  <Eye className="h-4 w-4 text-slate-500" />
+                                </Button>
+
                                 {/* Status Selector */}
                                 <Select
                                   defaultValue={booking.status}
@@ -407,6 +419,61 @@ export default function OwnerDashboard() {
             </Card>
           </div>
         )}
+
+        {/* ── Patient Details Modal ────────────────────────────────────────── */}
+        <Dialog open={!!patientDetailsBooking} onOpenChange={(open) => !open && setPatientDetailsBooking(null)}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Patient Details</DialogTitle>
+              <DialogDescription>
+                Detailed information for Booking #{patientDetailsBooking?.id}
+              </DialogDescription>
+            </DialogHeader>
+            {patientDetailsBooking && (
+              <div className="grid gap-3 py-4 text-sm">
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <span className="font-medium text-slate-500">Name:</span>
+                  <span className="col-span-2">{patientDetailsBooking.patientName}</span>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <span className="font-medium text-slate-500">Age:</span>
+                  <span className="col-span-2">{patientDetailsBooking.age} years</span>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <span className="font-medium text-slate-500">Phone:</span>
+                  <span className="col-span-2">{patientDetailsBooking.phone}</span>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <span className="font-medium text-slate-500">Email:</span>
+                  <span className="col-span-2">{patientDetailsBooking.email}</span>
+                </div>
+                <div className="grid grid-cols-3 items-start gap-4">
+                  <span className="font-medium text-slate-500">Address:</span>
+                  <span className="col-span-2">{patientDetailsBooking.address}</span>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <span className="font-medium text-slate-500">Date & Slot:</span>
+                  <span className="col-span-2">{patientDetailsBooking.bookingDate} at {patientDetailsBooking.timeSlot}</span>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <span className="font-medium text-slate-500">Collection:</span>
+                  <span className="col-span-2">
+                    {patientDetailsBooking.homeCollection ? (
+                      <span className="text-blue-600 font-medium font-semibold flex items-center gap-1">
+                        🏡 Home Collection
+                      </span>
+                    ) : (
+                      <span className="text-slate-600 font-medium">🏥 Lab Visit</span>
+                    )}
+                  </span>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setPatientDetailsBooking(null)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* ── Tests Management ──────────────────────────────────────────────── */}
         <Card className="border-none shadow-lg">

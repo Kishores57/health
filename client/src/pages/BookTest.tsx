@@ -43,6 +43,7 @@ export default function BookTest() {
       testIds: [],
       timeSlot: "",
       address: "",
+      homeCollection: false,
     },
   });
 
@@ -336,6 +337,29 @@ export default function BookTest() {
                             <Input type="email" placeholder="john@example.com" className="h-12" {...field} />
                           </FormControl>
                           <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="homeCollection"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-white shadow-sm hover:border-primary/50 transition-colors">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base cursor-pointer">
+                              Home Sample Collection
+                            </FormLabel>
+                            <FormDescription className="cursor-pointer">
+                              Check this if you want our phlebotomist to collect the sample from your home.
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Checkbox
+                              checked={!!field.value}
+                              onCheckedChange={(checked) => field.onChange(checked === true)}
+                            />
+                          </FormControl>
                         </FormItem>
                       )}
                     />

@@ -17,7 +17,7 @@ const perfLog = (label: string, startMs: number) => {
 export const createBooking = async (req: Request, res: Response): Promise<void> => {
   const t0 = Date.now();
   try {
-    const { patientName, age, phone, email, address, testIds, bookingDate, timeSlot } = req.body;
+    const { patientName, age, phone, email, address, testIds, bookingDate, timeSlot, homeCollection } = req.body;
 
     if (!testIds || testIds.length === 0) {
       res.status(400).json({ message: 'At least one test must be selected' });
@@ -59,6 +59,7 @@ export const createBooking = async (req: Request, res: Response): Promise<void> 
       testIds,
       bookingDate,
       timeSlot,
+      homeCollection,
       status: 'pending',
     });
     perfLog('createBooking:insert', t0);
@@ -80,10 +81,10 @@ export const createBooking = async (req: Request, res: Response): Promise<void> 
         const fallbackId = generateBookingId();
         const lastBooking = await BookingModel.findOne({}, 'id').sort({ id: -1 }).lean();
         const nextId = (lastBooking?.id ?? 0) + 1;
-        const { patientName, age, phone, email, address, testIds, bookingDate, timeSlot } = req.body;
+        const { patientName, age, phone, email, address, testIds, bookingDate, timeSlot, homeCollection } = req.body;
         const booking = await BookingModel.create({
           id: nextId, bookingId: fallbackId,
-          patientName, age, phone, email, address, testIds, bookingDate, timeSlot, status: 'pending',
+          patientName, age, phone, email, address, testIds, bookingDate, timeSlot, homeCollection, status: 'pending',
         });
         res.status(201).json(booking);
       } catch (retryErr: any) {

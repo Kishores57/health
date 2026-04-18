@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import BookTest from "@/pages/BookTest";
 import Reports from "@/pages/Reports";
+import AboutUs from "@/pages/AboutUs";
 import OwnerDashboard from "@/pages/OwnerDashboard";
 import Login from "@/pages/Login";
 import { Navbar } from "@/components/layout/Navbar";
@@ -24,6 +25,7 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/book" component={BookTest} />
           <Route path="/reports" component={Reports} />
+          <Route path="/about" component={AboutUs} />
 
           {/* Owner Login — accessible via direct URL only, hidden from nav */}
           <Route path="/auth" component={Login} />

@@ -13,7 +13,7 @@ export function Footer() {
               <div className="bg-primary/10 p-2 rounded-lg">
                 <Activity className="h-6 w-6 text-primary" />
               </div>
-              <span className="text-xl font-bold font-heading text-foreground">MediLab</span>
+              <span className="text-xl font-bold font-heading text-foreground">Sanjivani</span>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed">
               Leading the way in medical diagnostics with state-of-the-art technology and compassionate care. Accurate results, every time.
@@ -88,7 +88,7 @@ export function Footer() {
 
         <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} MediLab Diagnostics. All rights reserved.
+            © {new Date().getFullYear()} Sanjivani Clinical Laboratory. All rights reserved.
           </p>
           <div className="flex gap-6">
             <a href="#" className="text-sm text-muted-foreground hover:text-primary">Privacy Policy</a>

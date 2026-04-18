@@ -18,6 +18,7 @@ export function Navbar() {
     { href: "/", label: "Home" },
     { href: "/book", label: "Book a Test" },
     { href: "/reports", label: "Reports" },
+    { href: "/about", label: "About Us" },
   ];
 
   return (
@@ -30,8 +31,8 @@ export function Navbar() {
               <Activity className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl font-bold font-heading leading-none text-primary">MediLab</h1>
-              <p className="text-[10px] text-muted-foreground font-medium tracking-wider">DIAGNOSTICS</p>
+              <h1 className="text-xl font-bold font-heading leading-none text-primary">Sanjivani</h1>
+              <p className="text-[10px] text-muted-foreground font-medium tracking-wider">CLINICAL LABORATORY</p>
             </div>
           </div>
         </Link>

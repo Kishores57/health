@@ -11,6 +11,7 @@ export interface IBooking extends Document {
   bookingDate: string; // YYYY-MM-DD
   timeSlot: string;
   address: string;
+  homeCollection: boolean;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   userId?: string;
   reportUrl?: string;
@@ -29,6 +30,7 @@ const BookingSchema: Schema = new Schema({
   bookingDate:  { type: String, required: true },
   timeSlot:     { type: String, required: true },
   address:      { type: String, required: true },
+  homeCollection: { type: Boolean, default: false },
   status:       { type: String, enum: ['pending', 'confirmed', 'completed', 'cancelled'], default: 'pending' },
   userId:       { type: String },
   reportUrl:    { type: String },
