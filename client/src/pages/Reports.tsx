@@ -19,7 +19,9 @@ export default function Reports() {
     queryKey: [api.bookings.get.path, bookingId],
     queryFn: async () => {
       if (!bookingId) return null;
-      const url = buildUrl(api.bookings.get.path, { id: bookingId });
+      const cleanId = bookingId.replace(/\D/g, '');
+      if (!cleanId) throw new Error("Invalid Booking ID");
+      const url = buildUrl(api.bookings.get.path, { id: cleanId });
       const res = await fetch(getApiUrl(url));
       if (!res.ok) {
         if (res.status === 404) throw new Error("Booking not found");

@@ -2,6 +2,7 @@ import express from 'express';
 import {
   createBooking,
   trackBooking,
+  getBookingById,
   getBookings,
   getBookingsByStatus,
   updateBookingStatus,
@@ -19,6 +20,9 @@ router.post('/', createBooking);
 
 // GET  /api/bookings/track — guest tracks booking by phone + bookingId
 router.get('/track', trackBooking);
+
+// GET  /api/bookings/:id    — guest fetches report by numeric ID
+router.get('/:id', getBookingById);
 
 // ─── Owner-Only Routes (verifyToken + isOwner) ─────────────────────────────
 // GET  /api/bookings             — list all bookings

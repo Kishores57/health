@@ -97,6 +97,52 @@ export const createBooking = async (req: Request, res: Response): Promise<void> 
   }
 };
 
+// ── Get Single Booking ───────────────────────────────────────────────────────
+// @route GET /api/bookings/:id  (public)
+export const getBookingById = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      res.status(400).json({ message: 'Booking ID is required' });
+      return;
+    }
+
+    // Find by numeric ID or string bookingId (e.g. BKG-XXXX)
+    const booking = await BookingModel.findOne({
+      $or: [
+        { id: isNaN(Number(id)) ? -1 : Number(id) },
+        { bookingId: id }
+      ]
+    }).lean();
+
+    if (!booking) {
+      res.status(404).json({ message: 'Booking not found' });
+      return;
+    }
+
+    // Parallel: fetch tests, include report field for frontend compatibility
+    const tests = await TestModel.find(
+      { id: { $in: booking.testIds } },
+      'id name price sampleType turnaroundTime category'
+    ).lean();
+
+    // The frontend Reports.tsx expects booking.report if it exists
+    // The model has reportUrl, but System B used a separate Report model. 
+    // In our current System A, reportUrl is on the Booking itself.
+    // We'll map it to the structure the frontend expects.
+    const enrichedBooking = {
+      ...booking,
+      tests,
+      report: booking.reportUrl ? { reportUrl: booking.reportUrl, uploadedAt: (booking as any).updatedAt } : null
+    };
+
+    res.json(enrichedBooking);
+  } catch (err: any) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // ── Track Booking ──────────────────────────────────────────────────────────────
 // @route GET /api/bookings/track  (public)
 export const trackBooking = async (req: Request, res: Response): Promise<void> => {
