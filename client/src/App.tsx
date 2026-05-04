@@ -28,7 +28,7 @@ function Router() {
           <Route path="/about" component={AboutUs} />
 
           {/* Owner Login — accessible via direct URL only, hidden from nav */}
-          <Route path="/auth" component={Login} />
+          <Route path="/owner-login" component={Login} />
 
           {/* Owner Dashboard — protected on the page level */}
           <Route path="/owner" component={OwnerDashboard} />

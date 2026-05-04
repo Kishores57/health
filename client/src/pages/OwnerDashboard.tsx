@@ -61,7 +61,7 @@ export default function OwnerDashboard() {
   useEffect(() => {
     if (!authLoading) {
       if (!user) {
-        setLocation("/auth");
+        setLocation("/owner-login");
       } else if (user.role !== "owner") {
         setLocation("/");
       }

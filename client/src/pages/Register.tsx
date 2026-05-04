@@ -52,7 +52,7 @@ export default function Register() {
                 title: "Registration Successful",
                 description: "Your account has been created.",
             });
-            setLocation("/auth");
+            setLocation("/owner-login");
         },
         onError: (error: Error) => {
             toast({
@@ -185,7 +185,7 @@ export default function Register() {
                         Already have an account?{" "}
                         <button
                             type="button"
-                            onClick={() => setLocation("/auth")}
+                            onClick={() => setLocation("/owner-login")}
                             className="text-primary hover:underline font-medium"
                         >
                             Sign in

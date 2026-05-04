@@ -28,7 +28,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!authLoading) {
       if (!user) {
-        setLocation("/auth");
+        setLocation("/owner-login");
       } else if (user.role !== "owner") {
         setLocation("/");
       }

@@ -100,48 +100,59 @@ app.use((req, res, next) => {
   next();
 });
 
-// ── Bootstrap ─────────────────────────────────────────────────────────────────
-(async () => {
-  // 1. Connect to MongoDB
-  await connectDB();
-
-  // 2. Seed owner account (single-owner system)
-  await initAdmin();
-
-  // 3. Seed default tests if DB is empty
-  await initTests();
-
-  // 4. Schedule cron jobs
-  setupCronJobs();
-
-  // 5. API Routes
-  app.use("/api", adminRoutes);
-  app.use("/api/tests", testRoutes);
-  app.use("/api/bookings", bookingRoutes);
-
-  // Health check — used by keep-alive ping and Railway health probes
-  app.get("/api/health", (_req, res) => {
-    res.json({
-      status: "ok",
-      uptime: Math.floor(process.uptime()),
-      timestamp: new Date().toISOString(),
-    });
-  });
-
-  // 6. 404 handler for unknown API routes
-  app.use("/api", notFound);
-  app.use(errorHandler);
-
-  // 7. Serve frontend
-  if (isProduction) {
-    serveStatic(app);
-  } else {
-    const { setupVite } = await import("./vite");
-    await setupVite(httpServer, app);
+// ── DB Initialization for Serverless ──────────────────────────────────────────
+let isInitialized = false;
+app.use(async (req, res, next) => {
+  if (!isInitialized) {
+    try {
+      await connectDB();
+      await initAdmin();
+      await initTests();
+      if (!process.env.VERCEL) {
+        setupCronJobs();
+      }
+      isInitialized = true;
+    } catch (error) {
+      console.error("Initialization failed:", error);
+    }
   }
+  next();
+});
 
-  const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen({ port, host: "0.0.0.0" }, () => {
-    log(`serving on port ${port}`);
+// ── API Routes ────────────────────────────────────────────────────────────────
+app.use("/api", adminRoutes);
+app.use("/api/tests", testRoutes);
+app.use("/api/bookings", bookingRoutes);
+
+// Health check — used by keep-alive ping and Railway health probes
+app.get("/api/health", (_req, res) => {
+  res.json({
+    status: "ok",
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
   });
-})();
+});
+
+// 404 handler for unknown API routes
+app.use("/api", notFound);
+app.use(errorHandler);
+
+// ── Bootstrap (Local / Standard Node) ─────────────────────────────────────────
+if (!process.env.VERCEL) {
+  (async () => {
+    // Serve frontend
+    if (isProduction) {
+      serveStatic(app);
+    } else {
+      const { setupVite } = await import("./vite");
+      await setupVite(httpServer, app);
+    }
+
+    const port = parseInt(process.env.PORT || "5000", 10);
+    httpServer.listen({ port, host: "0.0.0.0" }, () => {
+      log(`serving on port ${port}`);
+    });
+  })();
+}
+
+export default app;
