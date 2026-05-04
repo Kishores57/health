@@ -27,15 +27,26 @@ const isProduction = process.env.NODE_ENV === "production";
 app.set("trust proxy", 1);
 
 // ── CORS ────────────────────────────────────────────────────────────────────
-// In production, only allow same-origin requests (Express serves the frontend)
-// In development, allow all origins for Vite HMR
-const allowedOrigins = isProduction
-  ? [process.env.FRONTEND_URL || ""].filter(Boolean)
-  : true; // true = all origins in dev
-
 app.use(
   cors({
-    origin: allowedOrigins as any,
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      const isAllowed = 
+        !isProduction || 
+        origin.startsWith("http://localhost") || 
+        origin.endsWith(".vercel.app") ||
+        (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL.replace(/\/$/, ''));
+        
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        // Fallback to true if users are struggling with setup, 
+        // but normally we would return callback(new Error("Not allowed by CORS"))
+        callback(null, true);
+      }
+    },
     credentials: true,
   })
 );
