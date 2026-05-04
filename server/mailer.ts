@@ -31,6 +31,7 @@ export async function sendBookingConfirmation(
       user_id: config.public_key,
       template_params: {
         to_email: email,
+        email: email,
         patient_name: bookingDetails.patientName,
         booking_id: `#${bookingDetails.bookingId || bookingDetails.id}`,
         test_name: testDetails?.name || "Medical Test",
@@ -42,7 +43,10 @@ export async function sendBookingConfirmation(
 
     const response = await fetch(EMAILJS_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Origin": process.env.VITE_API_URL || "https://health-8zu0.onrender.com"
+      },
       body: JSON.stringify(payload),
     });
 
@@ -74,6 +78,7 @@ export async function sendReportNotification(
       user_id: config.public_key,
       template_params: {
         to_email: email,
+        email: email,
         test_name: testName || "Medical Test",
         report_url: reportUrl,
         // Note: EmailJS free tier doesn't support direct attachments, so we provide the dashboard URL
@@ -82,7 +87,10 @@ export async function sendReportNotification(
 
     const response = await fetch(EMAILJS_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Origin": process.env.VITE_API_URL || "https://health-8zu0.onrender.com"
+      },
       body: JSON.stringify(payload),
     });
 
