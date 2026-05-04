@@ -3,6 +3,7 @@ import { getApiUrl } from "@/lib/api-url";
 import { api, buildUrl } from "@shared/routes";
 import type { InsertBooking, InsertReport, Booking, Test, Report } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { sendReportNotification } from "@/lib/emailjs";
 
 // === TESTS HOOKS ===
 
@@ -203,7 +204,7 @@ export function useUploadReport() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (data: { bookingId: number, file: File }) => {
+    mutationFn: async (data: { bookingId: number, file: File, patientEmail?: string, testName?: string, reportUrl?: string }) => {
       // Build native FormData element to handle the multipart form encoding required by Multer
       const formData = new FormData();
       formData.append('report', data.file);
@@ -217,10 +218,21 @@ export function useUploadReport() {
       });
 
       if (!res.ok) throw new Error("Failed to upload report securely");
-      return res.json(); // API returns varying structures, simple passthrough
+      return { ...(await res.json()), _meta: { patientEmail: data.patientEmail, testName: data.testName, reportUrl: data.reportUrl } };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: [api.bookings.list.path] });
+
+      // ── Send report-ready email via EmailJS (client-side, non-blocking) ──
+      const { patientEmail, testName, reportUrl } = result._meta || {};
+      if (patientEmail) {
+        sendReportNotification({
+          email: patientEmail,
+          test_name: testName || "your test",
+          report_url: reportUrl || window.location.origin + "/reports",
+        });
+      }
+
       toast({
         title: "Report Uploaded",
         description: "The medical report has been attached to the booking.",
