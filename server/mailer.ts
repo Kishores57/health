@@ -1,6 +1,4 @@
 import nodemailer, { type SendMailOptions } from "nodemailer";
-import dotenv from "dotenv";
-dotenv.config();
 
 let transporter: nodemailer.Transporter | null = null;
 
