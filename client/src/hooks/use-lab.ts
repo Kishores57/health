@@ -3,7 +3,7 @@ import { getApiUrl } from "@/lib/api-url";
 import { api, buildUrl } from "@shared/routes";
 import type { InsertBooking, InsertReport, Booking, Test, Report } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { sendReportNotification } from "@/lib/emailjs";
+
 
 // === TESTS HOOKS ===
 
@@ -223,15 +223,7 @@ export function useUploadReport() {
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: [api.bookings.list.path] });
 
-      // ── Send report-ready email via EmailJS (client-side, non-blocking) ──
-      const { patientEmail, testName, reportUrl } = result._meta || {};
-      if (patientEmail) {
-        sendReportNotification({
-          email: patientEmail,
-          test_name: testName || "your test",
-          report_url: reportUrl || window.location.origin + "/reports",
-        });
-      }
+      // Email notification is handled server-side via Nodemailer.
 
       toast({
         title: "Report Uploaded",

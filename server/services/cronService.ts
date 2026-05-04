@@ -33,7 +33,7 @@ export const setupCronJobs = () => {
       }
 
       // ── Batch-fetch all test data needed (single query, not N queries) ────
-      const allTestIds = [...new Set(upcomingBookings.flatMap((b) => b.testIds))];
+      const allTestIds = Array.from(new Set(upcomingBookings.flatMap((b) => b.testIds)));
       const tests = await TestModel.find(
         { id: { $in: allTestIds } },
         'id name fastingRequired'

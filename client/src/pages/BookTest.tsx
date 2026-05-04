@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTests, useCreateBooking } from "@/hooks/use-lab";
 import { insertBookingSchema } from "@shared/schema";
-import { sendBookingConfirmation } from "@/lib/emailjs";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -63,31 +63,7 @@ export default function BookTest() {
           setBookingId(res.id);
         }
 
-        // ── Send booking confirmation via EmailJS (client-side, non-blocking) ──
-        if (data.email) {
-          // Determine the selected test names
-          const selectedTests = tests?.filter(t => data.testIds.includes(t.id)) || [];
-          const testName = selectedTests.map(t => t.name).join(", ") || "Medical Test";
-
-          // Fasting: pick the strictest fasting requirement among selected tests
-          const fastingTest = selectedTests
-            .filter(t => t.fastingRequired)
-            .sort((a, b) => (b.fastingDuration || 0) - (a.fastingDuration || 0))[0];
-
-          const fastingInstructions = fastingTest
-            ? `Please maintain a strict fasting period of ${fastingTest.fastingDuration} hours before your appointment.`
-            : "No fasting is required for your scheduled test.";
-
-          sendBookingConfirmation({
-            patient_name: data.patientName,
-            email: data.email,
-            booking_id: res?.id || "",
-            test_name: testName,
-            booking_date: format(data.bookingDate, "dd MMM yyyy"),
-            time_slot: data.timeSlot,
-            fasting_instructions: fastingInstructions,
-          });
-        }
+        // Email confirmation is handled server-side via Nodemailer.
 
         setStep(3);
       }

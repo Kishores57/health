@@ -185,13 +185,13 @@ export const getBookings = async (req: Request, res: Response): Promise<void> =>
     const bookings = await BookingModel.find({}).sort({ createdAt: -1 }).lean();
 
     // Collect all unique testIds, fetch once instead of N queries
-    const allTestIds = [...new Set(bookings.flatMap((b) => b.testIds))];
+    const allTestIds = Array.from(new Set(bookings.flatMap((b) => b.testIds)));
     const tests = await TestModel.find({ id: { $in: allTestIds } }, 'id name price sampleType').lean();
     const testMap = new Map(tests.map((t) => [t.id, t]));
 
     const enriched = bookings.map((b) => ({
       ...b,
-      tests: b.testIds.map((tid) => testMap.get(tid)).filter(Boolean),
+      tests: b.testIds.map((tid: number) => testMap.get(tid)).filter(Boolean),
     }));
 
     res.json(enriched);
