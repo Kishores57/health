@@ -255,7 +255,8 @@ export const uploadReport = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    const fileUrl = `/uploads/${req.file.filename}`;
+    // With Cloudinary, req.file.path contains the direct URL to the uploaded file
+    const fileUrl = req.file.path;
 
     const booking = await BookingModel.findOneAndUpdate(
       { id: Number(id) },
@@ -269,8 +270,6 @@ export const uploadReport = async (req: Request, res: Response): Promise<void> =
     }
 
     // Non-blocking: look up test name + send email in background
-    // Report files live on the backend server, so use VITE_API_URL or fallback to Render URL
-    const backendUrl = process.env.VITE_API_URL || 'https://health-8zu0.onrender.com';
     if (booking.email) {
       TestModel.findOne({ id: booking.testIds[0] }, 'name')
         .lean()
@@ -278,8 +277,8 @@ export const uploadReport = async (req: Request, res: Response): Promise<void> =
           const testName = test?.name || 'Medical Test';
           return sendReportNotification(
             booking.email,
-            `${backendUrl}${fileUrl}`,
-            req.file!.path,
+            fileUrl, // Direct Cloudinary URL
+            undefined, // Cloudinary URLs handle downloads, no need to attach local file path
             testName
           );
         })
