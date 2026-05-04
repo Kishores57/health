@@ -45,6 +45,7 @@ export default function BookTest() {
       timeSlot: "",
       address: "",
       homeCollection: false,
+      bookingDate: new Date(),
     },
   });
 

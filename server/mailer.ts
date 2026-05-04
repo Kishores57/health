@@ -8,7 +8,12 @@ function getTransporter(): nodemailer.Transporter {
       throw new Error("EMAIL_USER and EMAIL_PASS environment variables must be set.");
     }
     transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      // Force IPv4 to prevent ENETUNREACH on Render's IPv6 network
+      // @ts-ignore
+      family: 4,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
