@@ -269,7 +269,8 @@ export const uploadReport = async (req: Request, res: Response): Promise<void> =
     }
 
     // Non-blocking: look up test name + send email in background
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
+    // Report files live on the backend server, so use VITE_API_URL or fallback to Render URL
+    const backendUrl = process.env.VITE_API_URL || 'https://health-8zu0.onrender.com';
     if (booking.email) {
       TestModel.findOne({ id: booking.testIds[0] }, 'name')
         .lean()
@@ -277,7 +278,7 @@ export const uploadReport = async (req: Request, res: Response): Promise<void> =
           const testName = test?.name || 'Medical Test';
           return sendReportNotification(
             booking.email,
-            `${frontendUrl}${fileUrl}`,
+            `${backendUrl}${fileUrl}`,
             req.file!.path,
             testName
           );
