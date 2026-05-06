@@ -39,8 +39,11 @@ export function useSlotAvailability() {
   // Track bookedSlots across broadcasts
   const bookedSlots = useRef<Set<string>>(new Set());
 
+  // FIX #1 — Must use numeric sort to match server's makeSlotKey.
+  // Without (a,b)=>a-b, [1,10,2] sorts as "1,10,2" not "1,2,10" and
+  // the client key never matches the server key → conflicts not detected.
   const makeKey = (date: string, timeSlot: string, testIds: number[]) =>
-    `${date}|${timeSlot}|${[...testIds].sort().join(",")}`;
+    `${date}|${timeSlot}|${[...testIds].sort((a, b) => a - b).join(",")}`;
 
   const connect = useCallback(() => {
     if (ws.current?.readyState === WebSocket.OPEN) return;
@@ -123,14 +126,23 @@ export function useSlotAvailability() {
   const holdSlot = useCallback((date: string, timeSlot: string, testIds: number[]) => {
     if (!date || !timeSlot || testIds.length === 0) return;
 
-    // Release previous slot
+    // FIX #2 — Only release + re-hold if the slot actually changed.
+    // Prevents a spurious release→hold round-trip when React re-renders
+    // with identical values (e.g. form validation triggers a re-render).
+    const newKey = makeKey(date, timeSlot, testIds);
     if (currentSlot.current) {
+      const curKey = makeKey(
+        currentSlot.current.date,
+        currentSlot.current.timeSlot,
+        currentSlot.current.testIds
+      );
+      if (curKey === newKey) return; // same slot — nothing to do
       ws.current?.send(JSON.stringify({ type: "release_slot", ...currentSlot.current }));
     }
 
     currentSlot.current = { date, timeSlot, testIds };
     // Reset status optimistically while we wait for server response
-    setStatus({ isHeld: false, isBooked: false, holdCount: 0 });
+    setStatus({ isHeld: false, isBooked: bookedSlots.current.has(newKey), holdCount: 0 });
 
     if (ws.current?.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify({ type: "hold_slot", date, timeSlot, testIds }));
