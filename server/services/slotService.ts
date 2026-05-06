@@ -5,40 +5,58 @@ import { Server } from 'http';
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface SlotHold {
   clientId: string;
-  heldAt: number;  // timestamp
+  heldAt: number;  // timestamp ms
 }
 
-// slotKey = "YYYY-MM-DD|HH:MM AM|testId1,testId2"
+// slotKey = "YYYY-MM-DD|HH:MM AM|1,2,10"  (testIds numerically sorted)
 type SlotKey = string;
 
-// ── In-memory Slot Holds ──────────────────────────────────────────────────────
-// Maps slotKey → array of active holds (one per connected client that selected it)
+// ── In-memory state ───────────────────────────────────────────────────────────
+// Maps slotKey → holds currently active on that slot
 const slotHolds = new Map<SlotKey, SlotHold[]>();
 
-// Maps clientId → Set of slot keys they currently hold
+// Maps clientId → Set of slot keys that client is holding
 const clientSlots = new Map<string, Set<SlotKey>>();
 
-// Maps clientId → WebSocket instance (for direct messaging)
+// Maps clientId → live WebSocket
 const clients = new Map<string, WebSocket>();
 
-// Hold expires after 10 minutes of inactivity (in case client disconnects silently)
+// Holds expire after 10 min of silence (guards against silent disconnects)
 const HOLD_TTL_MS = 10 * 60 * 1000;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+/**
+ * FIX #1 — Use numeric comparator so [1,10,2] → "1,2,10" not "1,10,2".
+ * Without this, two clients selecting the same tests in a different order
+ * would generate different slot keys and never see each other's holds.
+ */
 export function makeSlotKey(date: string, timeSlot: string, testIds: number[]): SlotKey {
-  return `${date}|${timeSlot}|${[...testIds].sort().join(',')}`;
+  return `${date}|${timeSlot}|${[...testIds].sort((a, b) => a - b).join(',')}`;
 }
 
-function getHoldCount(slotKey: SlotKey): number {
-  cleanExpiredHolds(slotKey);
-  return slotHolds.get(slotKey)?.length ?? 0;
-}
-
-function cleanExpiredHolds(slotKey: SlotKey) {
+/**
+ * FIX #2 — cleanExpiredHolds also removes stale entries from clientSlots.
+ * Previously expired holds were removed from slotHolds but the clientId
+ * remained in clientSlots forever → memory leak on long-running servers.
+ */
+function cleanExpiredHolds(slotKey: SlotKey): void {
   const holds = slotHolds.get(slotKey);
   if (!holds) return;
-  const now = Date.now();
-  const valid = holds.filter((h) => now - h.heldAt < HOLD_TTL_MS);
+
+  const now     = Date.now();
+  const expired = holds.filter((h) => now - h.heldAt >= HOLD_TTL_MS);
+  const valid   = holds.filter((h) => now - h.heldAt <  HOLD_TTL_MS);
+
+  // Clean up clientSlots for expired holds
+  for (const { clientId } of expired) {
+    const mySlots = clientSlots.get(clientId);
+    if (mySlots) {
+      mySlots.delete(slotKey);
+      if (mySlots.size === 0) clientSlots.delete(clientId);
+    }
+  }
+
   if (valid.length === 0) {
     slotHolds.delete(slotKey);
   } else {
@@ -46,7 +64,12 @@ function cleanExpiredHolds(slotKey: SlotKey) {
   }
 }
 
-function broadcastSlotStatus(slotKey: SlotKey) {
+function getHoldCount(slotKey: SlotKey): number {
+  cleanExpiredHolds(slotKey);
+  return slotHolds.get(slotKey)?.length ?? 0;
+}
+
+function broadcastSlotStatus(slotKey: SlotKey): void {
   const holdCount = getHoldCount(slotKey);
   const payload = JSON.stringify({
     type: 'slot_status',
@@ -62,25 +85,30 @@ function broadcastSlotStatus(slotKey: SlotKey) {
   }
 }
 
-function addHold(clientId: string, slotKey: SlotKey) {
-  // Remove any previous hold this client had for this same slot
-  releaseHold(clientId, slotKey);
+/**
+ * FIX #3 — addHold no longer calls releaseHold first.
+ * The old code did: releaseHold() [broadcasts] → push new hold → broadcastSlotStatus()
+ * That caused 2 broadcasts every time a client held a slot.
+ * Now we just replace the existing hold entry inline (single broadcast).
+ */
+function addHold(clientId: string, slotKey: SlotKey): void {
+  const existing = slotHolds.get(slotKey) ?? [];
+  // Replace any existing hold for this client (avoids duplicate entries)
+  const without  = existing.filter((h) => h.clientId !== clientId);
+  without.push({ clientId, heldAt: Date.now() });
+  slotHolds.set(slotKey, without);
 
-  const holds = slotHolds.get(slotKey) ?? [];
-  holds.push({ clientId, heldAt: Date.now() });
-  slotHolds.set(slotKey, holds);
-
-  // Track which slots this client holds
-  const mySlots = clientSlots.get(clientId) ?? new Set();
+  const mySlots = clientSlots.get(clientId) ?? new Set<SlotKey>();
   mySlots.add(slotKey);
   clientSlots.set(clientId, mySlots);
 
-  broadcastSlotStatus(slotKey);
+  broadcastSlotStatus(slotKey); // exactly ONE broadcast
 }
 
-function releaseHold(clientId: string, slotKey: SlotKey) {
+function releaseHold(clientId: string, slotKey: SlotKey): void {
   const holds = slotHolds.get(slotKey);
   if (!holds) return;
+
   const filtered = holds.filter((h) => h.clientId !== clientId);
   if (filtered.length === 0) {
     slotHolds.delete(slotKey);
@@ -89,12 +117,15 @@ function releaseHold(clientId: string, slotKey: SlotKey) {
   }
 
   const mySlots = clientSlots.get(clientId);
-  if (mySlots) mySlots.delete(slotKey);
+  if (mySlots) {
+    mySlots.delete(slotKey);
+    if (mySlots.size === 0) clientSlots.delete(clientId);
+  }
 
   broadcastSlotStatus(slotKey);
 }
 
-function releaseAllHolds(clientId: string) {
+function releaseAllHolds(clientId: string): void {
   const mySlots = clientSlots.get(clientId);
   if (!mySlots) return;
 
@@ -114,14 +145,26 @@ function releaseAllHolds(clientId: string) {
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
-/** Called by bookingController after a booking is confirmed — permanently releases and marks slot used */
-export function markSlotBooked(slotKey: SlotKey) {
-  // Broadcast that it's now "fully booked" by keeping a permanent marker
-  const payload = JSON.stringify({
-    type: 'slot_booked',
-    slotKey,
-    isBooked: true,
-  });
+
+/**
+ * FIX #4 — markSlotBooked now clears all holds for the slot before broadcasting.
+ * Previously the slot remained in slotHolds after booking, so late-arriving
+ * clients would still see it as "held" (wrong) instead of "booked".
+ */
+export function markSlotBooked(slotKey: SlotKey): void {
+  // Clear all holds for this slot and tidy clientSlots
+  const holds = slotHolds.get(slotKey) ?? [];
+  for (const { clientId } of holds) {
+    const mySlots = clientSlots.get(clientId);
+    if (mySlots) {
+      mySlots.delete(slotKey);
+      if (mySlots.size === 0) clientSlots.delete(clientId);
+    }
+  }
+  slotHolds.delete(slotKey);
+
+  // Broadcast the definitive "booked" event to every connected client
+  const payload = JSON.stringify({ type: 'slot_booked', slotKey, isBooked: true });
   for (const [, ws] of clients) {
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(payload);
@@ -129,7 +172,7 @@ export function markSlotBooked(slotKey: SlotKey) {
   }
 }
 
-/** Check how many active holds exist for a slot (used by booking controller) */
+/** Returns how many clients are currently holding a given slot. */
 export function getSlotHoldCount(slotKey: SlotKey): number {
   return getHoldCount(slotKey);
 }
@@ -147,7 +190,7 @@ export function setupSlotWebSocket(httpServer: Server) {
     const clientId = newClientId();
     clients.set(clientId, ws);
 
-    // Send the client their own ID
+    // Greet the client with their assigned ID
     ws.send(JSON.stringify({ type: 'connected', clientId }));
 
     ws.on('message', (raw) => {
@@ -156,10 +199,9 @@ export function setupSlotWebSocket(httpServer: Server) {
 
         switch (msg.type) {
           case 'hold_slot': {
-            // Client is viewing/selecting this slot
             const key = makeSlotKey(msg.date, msg.timeSlot, msg.testIds);
             addHold(clientId, key);
-            // Tell the client their current hold status
+            // Acknowledge with current hold count (client uses this to show warning)
             ws.send(JSON.stringify({
               type: 'hold_ack',
               slotKey: key,
@@ -175,7 +217,6 @@ export function setupSlotWebSocket(httpServer: Server) {
           }
 
           case 'check_slot': {
-            // Client asks: is this slot currently held by anyone else?
             const key = makeSlotKey(msg.date, msg.timeSlot, msg.testIds);
             const holdCount = getHoldCount(key);
             ws.send(JSON.stringify({
@@ -191,7 +232,7 @@ export function setupSlotWebSocket(httpServer: Server) {
             break;
         }
       } catch {
-        // ignore malformed messages
+        // Ignore malformed / non-JSON messages
       }
     });
 
