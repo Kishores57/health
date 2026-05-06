@@ -15,13 +15,13 @@ export interface ITest extends Document {
 }
 
 const TestSchema: Schema = new Schema({
-  id: { type: Number, unique: true },
+  id: { type: Number, unique: true, index: true },
   name: { type: String, required: true },
   description: { type: String, required: true },
   price: { type: Number, required: true }, // in cents
   sampleType: { type: String, required: true },
   turnaroundTime: { type: String, required: true },
-  category: { type: String, required: true },
+  category: { type: String, required: true, index: true },
   fastingRequired: { type: Boolean, default: false },
   fastingDuration: { type: Number, default: 0 },
   isPostprandial: { type: Boolean, default: false },

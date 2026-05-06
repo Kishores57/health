@@ -70,12 +70,14 @@ export const loginAdmin = async (req: Request, res: Response): Promise<void> => 
   res.cookie('access_token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'none',       // ← allows cross-origin cookies (Vercel → Render)
     maxAge: COOKIE_MAX_AGE,
     path: '/',
   });
 
-  res.json({ id: admin._id, username: admin.username, role: admin.role });
+  // Also return the token in the body so cross-origin clients (Vercel)
+  // can store it in localStorage and send it as Authorization header.
+  res.json({ id: admin._id, username: admin.username, role: admin.role, token });
 };
 
 /**

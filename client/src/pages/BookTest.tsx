@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { Helmet } from "react-helmet-async";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,7 +17,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 import { CalendarIcon, CheckCircle2, Loader2, Beaker } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useSlotAvailability } from "@/hooks/use-slot-availability";
 
 // Extend the schema for form validation including required date
 const formSchema = insertBookingSchema.extend({
@@ -34,6 +36,7 @@ export default function BookTest() {
   const createBooking = useCreateBooking();
   const [step, setStep] = useState(1);
   const [bookingId, setBookingId] = useState<number | null>(null);
+  const { status: slotStatus, holdSlot, releaseSlot } = useSlotAvailability();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -48,6 +51,25 @@ export default function BookTest() {
       bookingDate: new Date(),
     },
   });
+
+  // Watch the slot-selection fields and send real-time hold to server
+  const watchedDate    = form.watch("bookingDate");
+  const watchedTime    = form.watch("timeSlot");
+  const watchedTestIds = form.watch("testIds");
+
+  useEffect(() => {
+    if (watchedDate && watchedTime && watchedTestIds?.length > 0) {
+      const dateStr = watchedDate instanceof Date
+        ? watchedDate.toISOString().split("T")[0]
+        : String(watchedDate);
+      holdSlot(dateStr, watchedTime, watchedTestIds);
+    } else {
+      releaseSlot();
+    }
+  }, [watchedDate, watchedTime, watchedTestIds?.join(",")]);
+
+  // Release hold when component unmounts (user leaves the page)
+  useEffect(() => () => { releaseSlot(); }, []);
 
   const onSubmit = (data: FormValues) => {
     // Format date as YYYY-MM-DD string as expected by the backend date type
@@ -115,6 +137,19 @@ export default function BookTest() {
 
   return (
     <div className="bg-slate-50 min-h-screen py-12">
+      <Helmet>
+        <title>Book a Test – Sanjivani Clinical Laboratory</title>
+        <meta name="description" content="Book blood tests and diagnostic services online at Sanjivani Clinical Laboratory. Choose home collection or visit our lab. Easy 2-step booking with instant confirmation." />
+        <meta name="keywords" content="book blood test online, diagnostic test booking, home sample collection, health test appointment, Sanjivani lab booking" />
+        <link rel="canonical" href="https://www.sanjivanilabs.com/book" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.sanjivanilabs.com/book" />
+        <meta property="og:title" content="Book a Diagnostic Test – Sanjivani Labs" />
+        <meta property="og:description" content="Schedule your blood test or health checkup online. Home sample collection available. Fast, accurate reports." />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="Book a Diagnostic Test – Sanjivani Labs" />
+        <meta name="twitter:description" content="Schedule your blood test online. Home collection available. Instant booking confirmation." />
+      </Helmet>
       <div className="container mx-auto px-4 max-w-3xl">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold font-heading text-slate-900">Book a Test</h1>
@@ -133,6 +168,41 @@ export default function BookTest() {
             <span className="font-medium hidden sm:inline">Patient Info</span>
           </div>
         </div>
+
+        {/* Real-time slot conflict banner */}
+        <AnimatePresence>
+          {(slotStatus.isBooked || slotStatus.isHeld) && (
+            <motion.div
+              key="slot-warning"
+              initial={{ opacity: 0, y: -12, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.97 }}
+              transition={{ duration: 0.3 }}
+              className={cn(
+                "mb-6 rounded-xl border px-5 py-4 flex items-start gap-3 text-sm font-medium shadow-md",
+                slotStatus.isBooked
+                  ? "bg-red-50 border-red-200 text-red-700"
+                  : "bg-amber-50 border-amber-200 text-amber-700"
+              )}
+            >
+              <span className="text-xl leading-none mt-0.5">
+                {slotStatus.isBooked ? "🚫" : "⚠️"}
+              </span>
+              <div>
+                <p className="font-semibold">
+                  {slotStatus.isBooked
+                    ? "This slot is already fully booked"
+                    : `${slotStatus.holdCount - 1} other user${slotStatus.holdCount > 2 ? "s are" : " is"} viewing this slot`}
+                </p>
+                <p className="mt-0.5 font-normal opacity-80">
+                  {slotStatus.isBooked
+                    ? "Please choose a different date or time to continue."
+                    : "This time slot may get taken. Consider choosing another slot to avoid disappointment."}
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <Card className="border-none shadow-xl">
           <CardHeader>

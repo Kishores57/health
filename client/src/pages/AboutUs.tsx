@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
 import { Award, HeartPulse, Microscope, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -5,6 +6,21 @@ import { Card } from "@/components/ui/card";
 export default function AboutUs() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
+      <Helmet>
+        <title>About Us – Sanjivani Clinical Laboratory</title>
+        <meta name="description" content="Learn about Sanjivani Clinical Laboratory's legacy of trust and precision. ISO 9001 certified, serving 10,000+ patients with state-of-the-art diagnostic technology." />
+        <meta name="keywords" content="about Sanjivani lab, clinical laboratory history, ISO certified lab, diagnostic center, pathology lab" />
+        <link rel="canonical" href="https://www.sanjivanilabs.com/about" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.sanjivanilabs.com/about" />
+        <meta property="og:title" content="About Sanjivani Clinical Laboratory" />
+        <meta property="og:description" content="ISO 9001 certified lab with 1M+ tests conducted. Compassionate, precise, and accessible diagnostics for everyone." />
+        <meta property="og:image" content="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=1200" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="About Sanjivani Clinical Laboratory" />
+        <meta name="twitter:description" content="ISO 9001 certified lab with 1M+ tests conducted. Compassionate, precise, and accessible diagnostics." />
+        <meta name="twitter:image" content="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=1200" />
+      </Helmet>
       {/* Hero Section */}
       <section className="relative pt-24 pb-20 lg:pt-32 lg:pb-28 overflow-hidden">
         <div className="absolute inset-0 bg-blue-50/50 dark:bg-slate-900/50" />

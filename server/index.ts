@@ -18,9 +18,13 @@ import testRoutes from "./routes/testRoutes";
 import bookingRoutes from "./routes/bookingRoutes";
 
 import { serveStatic } from "./static";
+import { setupSlotWebSocket } from "./services/slotService";
 
 const app = express();
 const httpServer = createServer(app);
+
+// ── Real-time slot availability WebSocket ─────────────────────────────────────
+setupSlotWebSocket(httpServer);
 
 const isProduction = process.env.NODE_ENV === "production";
 

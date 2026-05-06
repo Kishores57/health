@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,6 +11,23 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <Helmet>
+        <title>Sanjivani Clinical Laboratory – Advanced Diagnostics & Blood Tests</title>
+        <meta name="description" content="Book accurate blood tests & diagnostic services at Sanjivani Clinical Laboratory. Home sample collection available. Fast reports in 24 hours. Trusted by 10,000+ patients." />
+        <meta name="keywords" content="blood test, diagnostic lab, home sample collection, health checkup, pathology, clinical laboratory, Sanjivani" />
+        <link rel="canonical" href="https://www.sanjivanilabs.com/" />
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.sanjivanilabs.com/" />
+        <meta property="og:title" content="Sanjivani Clinical Laboratory – Advanced Diagnostics" />
+        <meta property="og:description" content="Fast, accurate, and reliable blood testing services from the comfort of your home or at our state-of-the-art labs." />
+        <meta property="og:image" content="https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=80&w=1200" />
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Sanjivani Clinical Laboratory – Advanced Diagnostics" />
+        <meta name="twitter:description" content="Book accurate blood tests & health packages online. Home sample collection available." />
+        <meta name="twitter:image" content="https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=80&w=1200" />
+      </Helmet>
       {/* Hero Section */}
       <section 
         className="relative overflow-hidden pt-32 pb-40 lg:pt-48 lg:pb-56 bg-cover bg-center bg-no-repeat"

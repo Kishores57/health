@@ -3,6 +3,7 @@ import { BookingModel } from '../models/Booking';
 import { TestModel } from '../models/Test';
 import { generateBookingId } from '../utils/bookingHelper';
 import { sendBookingConfirmation, sendReportNotification } from '../mailer';
+import { markSlotBooked, makeSlotKey } from '../services/slotService';
 
 // ── Perf helper ───────────────────────────────────────────────────────────────
 const perfLog = (label: string, startMs: number) => {
@@ -64,7 +65,11 @@ export const createBooking = async (req: Request, res: Response): Promise<void> 
     });
     perfLog('createBooking:insert', t0);
 
-    // ── Step 4: Fire-and-forget confirmation email ───────────────────────────
+    // ── Step 4: Broadcast slot as booked via WebSocket ───────────────────────
+    const slotKey = makeSlotKey(bookingDate, timeSlot, testIds);
+    markSlotBooked(slotKey);
+
+    // ── Step 5: Fire-and-forget confirmation email ───────────────────────────
     // Do NOT await — email sending must never block the booking response
     if (email) {
       sendBookingConfirmation(email, booking, test).catch((err) =>

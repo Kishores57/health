@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import http from 'http';
+import https from 'https';
 import { BookingModel } from '../models/Booking';
 import { TestModel } from '../models/Test';
 
@@ -65,22 +66,41 @@ export const setupCronJobs = () => {
     }
   });
 
-  // ── Keep-Alive Ping: Every 10 minutes ────────────────────────────────────
-  // Prevents Railway (and other PaaS) from letting the container go cold.
-  // Pings the local health endpoint so the process stays warm.
-  const PING_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+  // ── Keep-Alive Ping: Every 14 minutes ───────────────────────────────
+  // Render Free Tier sleeps after 15 min of inactivity.
+  // Pinging the EXTERNAL public URL keeps the server awake.
+  const PING_INTERVAL_MS = 14 * 60 * 1000; // 14 minutes (just under the 15-min sleep threshold)
+
   const selfPing = () => {
-    const port = process.env.PORT || '5000';
-    const req = http.request(
-      { hostname: 'localhost', port, path: '/api/health', method: 'GET', timeout: 5000 },
-      (res) => {
-        console.log(`[keep-alive] ping → HTTP ${res.statusCode}`);
-      }
-    );
-    req.on('error', () => {
-      // Silently ignore — server may not be ready on first ping
-    });
-    req.end();
+    // Prefer the public Render URL so the ping comes from outside (prevents sleep).
+    // Falls back to localhost if not on Render.
+    const externalUrl = process.env.RENDER_EXTERNAL_URL;
+
+    if (externalUrl) {
+      // External HTTPS ping to the public Render URL
+      const url = new URL('/api/health', externalUrl);
+      const client = url.protocol === 'https:' ? https : http;
+      const req = client.get(url.toString(), { timeout: 8000 }, (res) => {
+        console.log(`[keep-alive] external ping → HTTP ${res.statusCode}`);
+        res.resume(); // drain response body to free socket
+      });
+      req.on('error', (err) => {
+        console.warn('[keep-alive] external ping failed:', err.message);
+      });
+      req.end();
+    } else {
+      // Fallback: localhost ping (development)
+      const port = process.env.PORT || '5000';
+      const req = http.request(
+        { hostname: 'localhost', port, path: '/api/health', method: 'GET', timeout: 5000 },
+        (res) => {
+          console.log(`[keep-alive] local ping → HTTP ${res.statusCode}`);
+          res.resume();
+        }
+      );
+      req.on('error', () => { /* silently ignore on startup */ });
+      req.end();
+    }
   };
 
   // Start pinging 30s after boot (give server time to be ready)
@@ -89,5 +109,5 @@ export const setupCronJobs = () => {
     setInterval(selfPing, PING_INTERVAL_MS);
   }, 30_000);
 
-  console.log('✅ Cron jobs scheduled. Keep-alive active (10 min interval).');
+  console.log('✅ Cron jobs scheduled. Keep-alive active (14 min interval, external URL).');
 };

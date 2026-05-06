@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /book
+Allow: /about
+
+# Disallow private/admin pages
+Disallow: /owner
+Disallow: /owner-login
+Disallow: /reports
+
+Sitemap: https://www.sanjivanilabs.com/sitemap.xml

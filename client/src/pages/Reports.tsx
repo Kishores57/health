@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,6 +43,20 @@ export default function Reports() {
 
   return (
     <div className="bg-slate-50 min-h-screen py-12">
+      <Helmet>
+        <title>Download Reports – Sanjivani Clinical Laboratory</title>
+        <meta name="description" content="Download your blood test reports and lab results online from Sanjivani Clinical Laboratory. Enter your Booking ID to access and download your medical reports securely." />
+        <meta name="keywords" content="download lab report, blood test report online, medical report download, Sanjivani report, diagnostic report" />
+        <link rel="canonical" href="https://www.sanjivanilabs.com/reports" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.sanjivanilabs.com/reports" />
+        <meta property="og:title" content="Download Your Lab Reports – Sanjivani Labs" />
+        <meta property="og:description" content="Access and download your medical test reports securely online using your Booking ID." />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="Download Your Lab Reports – Sanjivani Labs" />
+        <meta name="twitter:description" content="Access your medical reports securely online. Enter your Booking ID to download." />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <div className="container mx-auto px-4 max-w-2xl">
         <div className="text-center mb-10">
           <h1 className="text-3xl font-bold font-heading text-slate-900 mb-4">Download Reports</h1>

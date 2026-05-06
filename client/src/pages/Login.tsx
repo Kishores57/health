@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useLocation } from "wouter";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient, tokenManager } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
@@ -42,7 +42,13 @@ export default function Login() {
             return await res.json();
         },
         onSuccess: (data) => {
-            queryClient.setQueryData(["/api/auth/user"], data);
+            // Save token to localStorage so it works cross-origin (Vercel → Render)
+            if (data.token) {
+                tokenManager.set(data.token);
+            }
+            // Strip token before storing user in query cache
+            const { token: _token, ...user } = data;
+            queryClient.setQueryData(["/api/auth/user"], user);
             setLocation("/owner");
         },
         onError: (error: Error) => {
