@@ -78,11 +78,11 @@ function broadcastSlotStatus(slotKey: SlotKey): void {
     isHeld: holdCount > 0,
   });
 
-  for (const [, ws] of clients) {
+  clients.forEach((ws) => {
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(payload);
     }
-  }
+  });
 }
 
 /**
@@ -129,9 +129,9 @@ function releaseAllHolds(clientId: string): void {
   const mySlots = clientSlots.get(clientId);
   if (!mySlots) return;
 
-  for (const slotKey of mySlots) {
+  mySlots.forEach((slotKey) => {
     const holds = slotHolds.get(slotKey);
-    if (!holds) continue;
+    if (!holds) return;
     const filtered = holds.filter((h) => h.clientId !== clientId);
     if (filtered.length === 0) {
       slotHolds.delete(slotKey);
@@ -139,7 +139,7 @@ function releaseAllHolds(clientId: string): void {
       slotHolds.set(slotKey, filtered);
     }
     broadcastSlotStatus(slotKey);
-  }
+  });
 
   clientSlots.delete(clientId);
 }
@@ -165,11 +165,11 @@ export function markSlotBooked(slotKey: SlotKey): void {
 
   // Broadcast the definitive "booked" event to every connected client
   const payload = JSON.stringify({ type: 'slot_booked', slotKey, isBooked: true });
-  for (const [, ws] of clients) {
+  clients.forEach((ws) => {
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(payload);
     }
-  }
+  });
 }
 
 /** Returns how many clients are currently holding a given slot. */
